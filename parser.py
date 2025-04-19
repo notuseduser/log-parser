@@ -77,7 +77,7 @@ class Parser():
                 try:
                     if action.lstrip() == "START":
                         if status.get(pid, None) is not None:
-                            del status[pid]
+                            status[pid] = (timestamp, description, action)
                             raise Exception(f"Duplicate detected: 2 applications running under same PID - {pid}")
                         status[pid] = (timestamp, description, action)
                     elif action.lstrip() == "END":
@@ -87,15 +87,23 @@ class Parser():
                         time_end = timestamp
                         difference_seconds = int((datetime.strptime(time_end, "%H:%M:%S") \
                                         - datetime.strptime(time_start, "%H:%M:%S")).total_seconds())
-
+                        status.pop(pid)
                         if MIN5 <= difference_seconds < MIN10:
                             logger.warning(f"Job with PID - {pid} took longer than 5 minutes", extra=extra)
                         elif difference_seconds >= MIN10:
                             logger.error(f"Job with PID - {pid} took longer than 10 minutes", extra=extra)
+                    else:
+                        raise Exception(f"Action not START or END")
                 except Exception as e:
-                    logger.info(f"Exception parsing line with number {index} - {e}", extra=extra)
+                    logger.info(f"Exception parsing line with number {index + 1} - {e}", extra=extra)
                 finally:
                     if multiprocess: lock.release()
+
+            if len(status):
+                for key, value in status.items():
+                    if value[2].lstrip() == "START":
+                        logger.info(f"PID: {key} - still running", extra=extra)
+                    else: logger.info(f"PID: {key} - unknown state", extra=extra)
 
 if __name__ == "__main__":
     ns = argument_parser().parse_args()
