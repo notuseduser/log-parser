@@ -25,9 +25,10 @@ All packages used are shipped with python3, so theoretically there is nothing to
 # Result
 An WARNING message will be present in 'output_file' if the process took longer than 5 minutes and 
 an ERROR message if it took longer than 10 minutes.
-Also, as INFO are logged duplicate processes (which started twice) - in this case, they are simply
-discarded / deleted from map and no analysis is done for them & processes which ended but never started.
-They were considered anomalies which are unlikely to happen.
+Also, as INFO are logged duplicate processes - started twice with no END in between - in this case,
+time it started is considered the one of last occurrence; processes which ended but never started &
+processes still running, as there is no END for them.
+They were considered anomalies which are unlikely to happen, that's why INFO was chosen.
 
 # To do
 Time analysis, change to a @classmethod for **parse** function to avoid
